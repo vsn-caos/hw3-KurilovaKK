@@ -15,11 +15,26 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s <N>\n", argv[0]);
         return 1;
     }
-
-    int n = atoi(argv[1]);
-
-    // TODO: создайте цепочку из N процессов (каждый не более чем с одним потомком).
-    //       Каждый процесс выводит одно число. Порядок вывода должен быть 1 2 3 ... N.
-
+    int n = atoi(argv[1]);    
+    for (int i = 1; i <= n; i++) {
+        printf("%d", i);
+        if (i < n) {
+            printf(" ");
+        } else {
+            printf("\n");
+        }
+        fflush(stdout);
+        if (i == n) {
+            break;
+        }
+        pid_t p = fork();
+        if (p < 0) {
+            return 1;
+        }
+        if (p > 0) {
+            wait(NULL);
+            break;
+        }
+    }
     return 0;
 }
