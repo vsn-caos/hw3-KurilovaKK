@@ -17,10 +17,33 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s <filename> <search_string>\n", argv[0]);
         return 1;
     }
-
-    // TODO: откройте файл, получите его размер через fstat,
-    //       отобразите в память через mmap,
-    //       найдите все вхождения argv[2] и выведите их позиции
-
+    int f = open(argv[1], O_RDONLY);
+    if (f < 0) {
+        return 1;
+    }
+    struct stat s;
+    if (fstat(f, &s) < 0) {
+        close(f);
+        return 1;
+    }
+    off_t n = s.st_size;
+    char *p = argv[2];
+    long m = strlen(p);
+    if (m == 0 || n == 0 || m > n) {
+        close(f);
+        return 0;
+    }
+    char *a = mmap(NULL, n, PROT_READ, MAP_PRIVATE, f, 0);
+    if (a == MAP_FAILED) {
+        close(f);
+        return 1;
+    }
+    for (long i = 0; i <= n - m; i++) {
+        if (memcmp(a + i, p, m) == 0) {
+            printf("%ld\n", i);
+        }
+    }
+    munmap(a, n);
+    close(f);
     return 0;
 }
