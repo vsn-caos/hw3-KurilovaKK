@@ -22,12 +22,45 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s <ipv4_addr> <port>\n", argv[0]);
         return 1;
     }
+    int s = socket(AF_INET, SOCK_STREAM, 0);
+    if (s < 0) {
+        return 1;
+    }
 
-    // TODO: создайте TCP-сокет (AF_INET, SOCK_STREAM),
-    //       заполните struct sockaddr_in с помощью inet_aton/inet_pton,
-    //       подключитесь через connect,
-    //       реализуйте цикл чтения/отправки/приёма/вывода чисел.
-    //       Порядок байт — Little Endian (на x86/x86_64 это нативный порядок).
+    struct sockaddr_in a;
+    memset(&a, 0, sizeof(a));
+    a.sin_family = AF_INET;
+    a.sin_port = htons(atoi(argv[2]));
+    if (inet_pton(AF_INET, argv[1], &a.sin_addr) != 1) {
+        close(s);
+        return 1;
+    }
+    if (connect(s, (struct sockaddr *)&a, sizeof(a)) < 0) {
+        close(s);
+        return 1;
+    }
+    
+    int x;
+    while (scanf("%d", &x) == 1) {
+        int y = x;
+        if (send(s, &y, 4, 0) != 4) {
+            close(s);
+            return 0;
+        }
+        int z;
+        int r = recv(s, &z, 4, MSG_WAITALL);
+        if (r == 0) {
+            close(s);
+            return 0;
+        }
+        if (r != 4) {
+            close(s);
+            return 0;
+        }
+        printf("%d\n", z);
+        fflush(stdout);
+    }
+    close(s);
 
     return 0;
 }
